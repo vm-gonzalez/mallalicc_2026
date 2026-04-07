@@ -1,4 +1,6 @@
 from flask import Flask, render_template
+import json
+import os
 
 app = Flask(__name__)
 
@@ -61,9 +63,25 @@ malla_data = {
     ]
 }
 
+# Cargar el archivo de prerrequisitos si existe
+prerrequisitos_path = 'prerrequisitos.json'
+mapa_prerrequisitos = {}
+if os.path.exists(prerrequisitos_path):
+    with open(prerrequisitos_path, 'r', encoding='utf-8') as f:
+        mapa_prerrequisitos = json.load(f)
+
+# Extraer sigla de cada ramo
+for semestre, cursos in malla_data.items():
+    for curso in cursos:
+        partes = curso["nombre"].split(" - ")
+        if len(partes) > 1:
+            curso["sigla"] = partes[0].strip()
+        else:
+            curso["sigla"] = ""
+
 @app.route('/')
 def index():
-    return render_template('index.html', malla=malla_data)
+    return render_template('index.html', malla=malla_data, prerrequisitos=mapa_prerrequisitos)
 
 if __name__ == '__main__':
     app.run(debug=True)
