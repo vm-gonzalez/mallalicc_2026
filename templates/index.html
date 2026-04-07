@@ -94,24 +94,27 @@
             const mapaPrerrequisitos = JSON.parse(document.getElementById('prerrequisitos-data').textContent);
 
             // Función evaluadora de expresiones lógicas
-            function cumplePrerrequisitos(requisitoTexto, aprobadosSet) {
-                // Traduce el texto (ej. "IIC1103 o (MAT1610 y MAT1203)") a código JS
+            function cumplePrerrequisitos(requisitoTexto, aprobadosSet, actualesSet) {
                 let expresion = requisitoTexto
                     .replace(/\bo\b/gi, '||')
                     .replace(/\by\b/gi, '&&');
 
-                // Reemplaza las siglas por verificaciones booleanas (true/false)
-                // Usamos un regex general para capturar siglas como IIC2233, MAT1610, etc.
-                expresion = expresion.replace(/[A-Z]{3}\d{4}[A-Za-z]*/g, function(match) {
-                    return aprobadosSet.has(match) ? "true" : "false";
+                // Esta expresión regular captura la sigla, y opcionalmente el "(c)"
+                expresion = expresion.replace(/([A-Z]{3}\d{4})(\(c\))?/g, function(match, sigla, esCorrequisito) {
+                    if (esCorrequisito) {
+                        // Si es (c), es válido si está aprobado ANTES o si se toma AHORA
+                        return (aprobadosSet.has(sigla) || actualesSet.has(sigla)) ? "true" : "false";
+                    } else {
+                        // Si es un prerrequisito estricto, DEBE estar aprobado en semestres anteriores
+                        return aprobadosSet.has(sigla) ? "true" : "false";
+                    }
                 });
 
                 try {
-                    // Evalúa la expresión booleana final, ej: eval("true || (false && false)")
                     return eval(expresion);
                 } catch (e) {
                     console.error("Error evaluando regla: ", requisitoTexto);
-                    return true; // En caso de sintaxis anómala, evitamos romper la app
+                    return true;
                 }
             }
 
@@ -121,22 +124,27 @@
                 document.querySelectorAll('.error-mensaje').forEach(el => el.remove());
 
                 const semestres = document.querySelectorAll('.semestre-col');
-                let siglasAprobadas = new Set(); // Historial cronológico de ramos cursados
+                let siglasAprobadas = new Set(); // Historial de ramos en semestres pasados
 
                 semestres.forEach((columna) => {
                     const ramosEnSemestre = columna.querySelectorAll('.curso');
                     let siglasActuales = new Set(); 
 
+                    // PASO 1: Recolectar todos los ramos de ESTE semestre
                     ramosEnSemestre.forEach((ramoHTML) => {
                         const sigla = ramoHTML.getAttribute('data-sigla');
                         if(sigla) siglasActuales.add(sigla);
+                    });
 
-                        // Si existe una regla para este ramo en nuestro JSON
+                    // PASO 2: Evaluar cada ramo sabiendo cuáles son sus compañeros de semestre
+                    ramosEnSemestre.forEach((ramoHTML) => {
+                        const sigla = ramoHTML.getAttribute('data-sigla');
+                        
                         if (sigla && mapaPrerrequisitos[sigla]) {
                             const reglaOriginal = mapaPrerrequisitos[sigla];
                             
-                            // Validar aplicando la lógica Booleana
-                            if (!cumplePrerrequisitos(reglaOriginal, siglasAprobadas)) {
+                            // Pasamos tanto los 'aprobados' como los 'actuales'
+                            if (!cumplePrerrequisitos(reglaOriginal, siglasAprobadas, siglasActuales)) {
                                 ramoHTML.classList.add('error-prerrequisito');
                                 const errorMsg = document.createElement('span');
                                 errorMsg.className = 'error-mensaje';
@@ -146,7 +154,7 @@
                         }
                     });
 
-                    // Los ramos de este semestre ahora están disponibles como prerrequisitos para el siguiente
+                    // Los ramos de este semestre ahora pasan al historial de aprobados para el siguiente
                     siglasActuales.forEach(s => siglasAprobadas.add(s));
                 });
             }
