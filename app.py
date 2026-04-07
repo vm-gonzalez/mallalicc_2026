@@ -51,7 +51,7 @@ malla_data = {
         {"nombre": "IIC2523 - Sistemas Distribuidos", "tipo": "mj"},
         {"nombre": "IIC2182 - Interfaces y Experiencia de Usuario", "tipo": "mj"},
         {"nombre": "Optativos de Profundización o Minor", "tipo": "mn"},
-        {"nombre": "Optativos de Profundización o Minors", "tipo": "mn"},
+        {"nombre": "Optativos de Profundización o Minor", "tipo": "mn"},
         {"nombre": "Electivo Formación General", "tipo": "fg"}
     ],
     "Semestre 8": [
@@ -63,14 +63,60 @@ malla_data = {
     ]
 }
 
-# Cargar el archivo de prerrequisitos si existe
+lista_optativos = [
+    {"sigla": "IIC2026", "nombre": "Visualización de Información", "color": "comp"},
+    {"sigla": "IIC2433", "nombre": "Minería de Datos", "color": "comp"},
+    {"sigla": "IIC2113", "nombre": "Diseño Detallado de Software", "color": "comp"},
+    {"sigla": "IIC2173", "nombre": "Arquitectura de Sistemas de Software", "color": "comp"},
+    {"sigla": "IIC2714", "nombre": "Fundamentos de Procesamiento de Imágenes", "color": "comp"},
+    
+    {"sigla": "COM117", "nombre": "Narración Interactiva", "color": "otro"},
+    {"sigla": "COM813", "nombre": "Taller de Narración e Industria de E-Sports", "color": "otro"},
+    {"sigla": "IMT2117", "nombre": "Probabilidades y algoritmos", "color": "otro"},
+    {"sigla": "MAT2225", "nombre": "Teoría de Números", "color": "otro"},
+    {"sigla": "MAT2605", "nombre": "Cálculo Científico I", "color": "otro"},
+    {"sigla": "MAT2205", "nombre": "Álgebra Abstracta I", "color": "otro"},
+    {"sigla": "LET0121", "nombre": "Grandes Preguntas sobre el Lenguaje", "color": "otro"},
+    {"sigla": "LET0131", "nombre": "Gramática Española I", "color": "otro"},
+    {"sigla": "LET0129", "nombre": "Lingüística de Corpus y Computacional", "color": "otro"},
+    {"sigla": "EAE1210", "nombre": "Introducción a la Macroeconomía", "color": "otro"},
+    {"sigla": "EAE1110", "nombre": "Introducción a la Microeconomía", "color": "otro"},
+    {"sigla": "EAE2510", "nombre": "Econometría", "color": "otro"},
+    {"sigla": "EAE1220", "nombre": "Análisis Económico: la experiencia chilena", "color": "otro"},
+    {"sigla": "AST211", "nombre": "Introducción al Análisis de Datos", "color": "otro"},
+    {"sigla": "AST221", "nombre": "Taller de Astronomía", "color": "otro"},
+    {"sigla": "AST101", "nombre": "Un Paseo por el Universo", "color": "otro"},
+    {"sigla": "BIO242C", "nombre": "Bioestadística", "color": "otro"},
+    {"sigla": "BIO231C", "nombre": "Ecología", "color": "otro"},
+    {"sigla": "BIO298E", "nombre": "Trabajo experimental en Ecología", "color": "otro"},
+    {"sigla": "BIO299L", "nombre": "Laboratorio Fisiología", "color": "otro"}
+]
+
+lista_ciencias = [
+    {"sigla": "FIS1514", "nombre": "Dinámica + Laboratorio", "color": "cien"},
+    {"sigla": "FIS1523", "nombre": "Termodinámica + Laboratorio", "color": "cien"},
+    {"sigla": "FIS1533", "nombre": "Electricidad y Magnetismo + Laboratorio", "color": "cien"},
+    {"sigla": "AST101", "nombre": "Un Paseo por el Universo", "color": "cien"},
+    {"sigla": "AST211", "nombre": "Introducción al Análisis de Datos", "color": "cien"},
+    {"sigla": "AST221", "nombre": "Taller de Astronomía", "color": "cien"},
+    {"sigla": "AST0112", "nombre": "Astronomy", "color": "cien"},
+    {"sigla": "BIO110C", "nombre": "Biología de Organismos y Comunidades", "color": "cien"},
+    {"sigla": "BIO141C", "nombre": "Biología de la célula", "color": "cien"},
+    {"sigla": "BIO242C", "nombre": "Bioestadística", "color": "cien"},
+    {"sigla": "BIO231C", "nombre": "Ecología", "color": "cien"},
+    {"sigla": "QIM100E", "nombre": "Química para Ingeniería", "color": "cien"},
+    {"sigla": "QIM100", "nombre": "Química General", "color": "cien"},
+    {"sigla": "AGL101", "nombre": "Botánica", "color": "cien"},
+    {"sigla": "AGC220", "nombre": "Flora natura", "color": "cien"},
+    {"sigla": "VET0140", "nombre": "Biología y diversidad animal", "color": "cien"}
+]
+
 prerrequisitos_path = 'prerrequisitos.json'
 mapa_prerrequisitos = {}
 if os.path.exists(prerrequisitos_path):
     with open(prerrequisitos_path, 'r', encoding='utf-8') as f:
         mapa_prerrequisitos = json.load(f)
 
-# Extraer sigla de cada ramo
 for semestre, cursos in malla_data.items():
     for curso in cursos:
         partes = curso["nombre"].split(" - ")
@@ -81,7 +127,7 @@ for semestre, cursos in malla_data.items():
 
 @app.route('/')
 def index():
-    return render_template('index.html', malla=malla_data, prerrequisitos=mapa_prerrequisitos)
+    return render_template('index.html', malla=malla_data, prerrequisitos=mapa_prerrequisitos, optativos=lista_optativos, ciencias=lista_ciencias)
 
 if __name__ == '__main__':
     app.run(debug=True)

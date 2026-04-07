@@ -13,75 +13,154 @@
         .btn-descargar { background-color: #3b5998; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .btn-descargar:hover { background-color: #2d4373; }
         
-        .layout-principal { display: flex; gap: 20px; align-items: flex-start; }
+        .layout-principal { display: flex; flex-direction: column; gap: 20px; }
 
-        .banco-cursos { width: 260px; min-width: 260px; background-color: #e9ecef; border-radius: 8px; padding: 15px; height: calc(100vh - 120px); display: flex; flex-direction: column; }
-        .banco-title { font-weight: bold; text-align: center; color: #333; margin-top: 0; }
-        .banco-instruccion { font-size: 13px; color: #666; text-align: center; margin-bottom: 10px; }
-        
-        .buscador-input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
-        .buscador-input:focus { outline: none; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
-
-        .banco-lista { flex-grow: 1; border: 2px dashed #adb5bd; border-radius: 5px; padding: 10px; overflow-y: auto; }
-
-        .malla-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; flex-grow: 1; }
-        .semestre-col { background-color: #ffffff; border-radius: 8px; padding: 10px; width: 220px; min-width: 220px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 600px; display: flex; flex-direction: column;}
-        .semestre-title { text-align: center; font-weight: bold; margin-bottom: 15px; color: #333; }
+        /* Estilos de la malla (Sin scroll horizontal, se adapta a la pantalla) */
+        .malla-container { display: flex; gap: 8px; width: 100%; justify-content: space-between; }
+        .semestre-col { background-color: #ffffff; border-radius: 8px; padding: 8px; flex: 1; min-width: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 500px; display: flex; flex-direction: column; }
+        .semestre-title { text-align: center; font-weight: bold; margin-bottom: 12px; color: #333; font-size: 13px; }
         .lista-cursos { flex-grow: 1; }
         
-        .curso { padding: 15px 10px; margin-bottom: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 50px; transition: transform 0.1s; }
+        /* Cursos ligeramente más pequeños para que quepan bien en 8 columnas */
+        .curso { padding: 8px 4px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 45px; transition: transform 0.1s; line-height: 1.15; word-wrap: break-word; }
         .curso:hover { transform: scale(1.02); }
         .curso:active { cursor: grabbing; }
         
+        /* Bandeja de Cursos Horizontal (Abajo) */
+        .banco-cursos { width: 100%; background-color: #e9ecef; border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .banco-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px; }
+        .banco-title { font-weight: bold; color: #333; margin: 0; }
+        .banco-instruccion { font-size: 13px; color: #666; margin: 0; margin-top: 5px; }
+        .buscador-input { width: 300px; max-width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .buscador-input:focus { outline: none; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+        .banco-lista { flex-grow: 1; border: 2px dashed #adb5bd; border-radius: 5px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; min-height: 80px; align-content: flex-start; }
+        
+        /* Forzar un ancho fijo para los cursos cuando están en la bandeja inferior */
+        .banco-lista .curso { width: 160px; margin-bottom: 0; font-size: 12px; }
+
+        /* Colores Base */
         .tipo-pc { background-color: #a0f0e0; color: #000; }
         .tipo-fg { background-color: #2b4570; color: #fff; }
         .tipo-mj { background-color: #b8e994; color: #000; }
-        .tipo-mn { background-color: #f8c291; color: #000; }
+        .tipo-mn { background-color: #ffeaa7; color: #000; border: 2px dashed #f6b93b; } /* Optativos Minor/Prof. */
+        .tipo-ciencias { background-color: #cce5ff; color: #000; border: 2px dashed #007bff; } /* Optativo Ciencias con Borde Azul */
+        
+        /* Colores Dinámicos */
+        .opt-comp { background-color: #d1d8e0; color: #000; border: none; }
+        .opt-otro { background-color: #fab1a0; color: #000; border: none; }
+        .opt-cien { background-color: #a29bfe; color: #000; border: none; }
+        
         .ghost { opacity: 0.4; }
+        .error-prerrequisito { border: 2px solid #dc3545; background-color: #f8d7da !important; color: #721c24 !important; }
+        .error-mensaje { font-size: 10px; color: #dc3545; font-weight: bold; display: block; margin-top: 5px; text-align: center;}
 
-        .error-prerrequisito {
-            border: 2px solid #dc3545;
-            background-color: #f8d7da !important;
-            color: #721c24 !important;
-        }
-        .error-mensaje {
-            font-size: 10px;
-            color: #dc3545;
-            font-weight: bold;
-            display: block;
-            margin-top: 5px;
-        }
+        /* Estilos de los Modales */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+        .modal-header h3 { margin: 0; color: #333; }
+        .btn-cerrar { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold;}
+        .lista-optativos-modal { overflow-y: auto; flex-grow: 1; padding-right: 10px;}
+        
+        .item-optativo { padding: 10px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
+        .item-optativo:hover { opacity: 0.8; }
+        .item-comp { background-color: #d1d8e0; border-left: 5px solid #a5b1c2; }
+        .item-otro { background-color: #fab1a0; border-left: 5px solid #e17055; }
+        .item-cien { background-color: #a29bfe; border-left: 5px solid #6c5ce7; }
+
+        /* Estilos de la Alerta Profesional */
+        .alert-box { width: 350px; text-align: center; padding: 30px 20px; }
+        .alert-icon { font-size: 40px; color: #dc3545; margin-bottom: 15px; }
+        .alert-box h3 { margin-top: 0; color: #333; }
+        .alert-box p { color: #666; font-size: 14px; margin-bottom: 20px; }
+        .btn-alert { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-alert:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Mallas Ingeniería</h1>
+        <h1>Malla Licenciatura Ingeniería Ciencia de la Computación</h1>
         <button class="btn-descargar" onclick="descargarPDF()">Descargar malla (PDF)</button>
     </div>
 
     <div class="layout-principal">
-        <div class="banco-cursos" data-html2canvas-ignore="true">
-            <h2 class="banco-title">Cursos en Espera</h2>
-            <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo temporalmente.</p>
-            
-            <input type="text" id="buscador-banco" class="buscador-input" placeholder="Buscar un curso...">
-            <div class="lista-cursos banco-lista" id="banco"></div>
-        </div>
-
         <div id="malla-pdf" class="malla-container">
             {% for semestre, cursos in malla.items() %}
                 <div class="semestre-col">
                     <div class="semestre-title">{{ semestre }}</div>
                     <div class="lista-cursos" id="lista-{{ loop.index }}">
                         {% for curso in cursos %}
-                            <div class="curso tipo-{{ curso.tipo }}" data-sigla="{{ curso.sigla }}">
+                            <div class="curso {% if curso.nombre == 'Optativo de Ciencias' %}tipo-ciencias{% else %}tipo-{{ curso.tipo }}{% endif %}" 
+                                 data-sigla="{{ curso.sigla }}"
+                                 {% if curso.tipo == 'mn' %} data-malla-optativo="true" {% endif %}
+                                 {% if curso.nombre == 'Optativo de Ciencias' %} data-malla-ciencias="true" {% endif %}>
                                 {{ curso.nombre }}
                             </div>
                         {% endfor %}
                     </div>
                 </div>
             {% endfor %}
+        </div>
+
+        <div class="banco-cursos" data-html2canvas-ignore="true">
+            <div class="banco-header">
+                <div>
+                    <h2 class="banco-title">Cursos en Espera</h2>
+                    <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo temporalmente.</p>
+                </div>
+                <input type="text" id="buscador-banco" class="buscador-input" placeholder="Buscar un curso...">
+            </div>
+            <div class="lista-cursos banco-lista" id="banco"></div>
+        </div>
+    </div>
+
+    <div id="modal-optativos" class="modal-overlay" data-html2canvas-ignore="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Elige un Curso Optativo / Minor</h3>
+                <button class="btn-cerrar" onclick="cerrarModal('modal-optativos')">X</button>
+            </div>
+            <div class="lista-optativos-modal">
+                {% for opt in optativos %}
+                    <div class="item-optativo {{ 'item-comp' if opt.color == 'comp' else 'item-otro' }}" 
+                         data-sigla="{{ opt.sigla }}" 
+                         data-nombre="{{ opt.nombre }}"
+                         data-color="{{ opt.color }}"
+                         onclick="seleccionarCurso(this, 'modal-optativos')">
+                        <strong>{{ opt.sigla }}</strong> - {{ opt.nombre }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-ciencias" class="modal-overlay" data-html2canvas-ignore="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Elige un Optativo de Ciencias</h3>
+                <button class="btn-cerrar" onclick="cerrarModal('modal-ciencias')">X</button>
+            </div>
+            <div class="lista-optativos-modal">
+                {% for cien in ciencias %}
+                    <div class="item-optativo item-cien" 
+                         data-sigla="{{ cien.sigla }}" 
+                         data-nombre="{{ cien.nombre }}"
+                         data-color="{{ cien.color }}"
+                         onclick="seleccionarCurso(this, 'modal-ciencias')">
+                        <strong>{{ cien.sigla }}</strong> - {{ cien.nombre }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-alerta" class="modal-overlay" style="z-index: 2000;" data-html2canvas-ignore="true">
+        <div class="modal-content alert-box">
+            <div class="alert-icon">⚠️</div>
+            <h3>¡Límite Alcanzado!</h3>
+            <p>Solo puedes elegir hasta un máximo de 2 optativos del área de computación (20 créditos en total).</p>
+            <button class="btn-alert" onclick="cerrarModal('modal-alerta')">Entendido</button>
         </div>
     </div>
 
@@ -90,60 +169,85 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const mapaPrerrequisitos = JSON.parse(document.getElementById('prerrequisitos-data').textContent);
+        let tarjetaDestino = null;
 
-            // Función evaluadora de expresiones lógicas
-            function cumplePrerrequisitos(requisitoTexto, aprobadosSet, actualesSet) {
-                let expresion = requisitoTexto
-                    .replace(/\bo\b/gi, '||')
-                    .replace(/\by\b/gi, '&&');
+        function abrirModal(idElemento, tarjeta) {
+            tarjetaDestino = tarjeta;
+            document.getElementById(idElemento).style.display = 'flex';
+        }
 
-                // Esta expresión regular captura la sigla, y opcionalmente el "(c)"
-                expresion = expresion.replace(/([A-Z]{3}\d{4})(\(c\))?/g, function(match, sigla, esCorrequisito) {
-                    if (esCorrequisito) {
-                        // Si es (c), es válido si está aprobado ANTES o si se toma AHORA
-                        return (aprobadosSet.has(sigla) || actualesSet.has(sigla)) ? "true" : "false";
-                    } else {
-                        // Si es un prerrequisito estricto, DEBE estar aprobado en semestres anteriores
-                        return aprobadosSet.has(sigla) ? "true" : "false";
-                    }
-                });
+        function cerrarModal(idElemento) {
+            document.getElementById(idElemento).style.display = 'none';
+        }
 
-                try {
-                    return eval(expresion);
-                } catch (e) {
-                    console.error("Error evaluando regla: ", requisitoTexto);
-                    return true;
+        function seleccionarCurso(elemento, idModal) {
+            if (!tarjetaDestino) return;
+
+            const sigla = elemento.getAttribute('data-sigla');
+            const nombre = elemento.getAttribute('data-nombre');
+            const colorTipo = elemento.getAttribute('data-color');
+            
+            let colorClass = 'opt-otro';
+            if (colorTipo === 'comp') colorClass = 'opt-comp';
+            if (colorTipo === 'cien') colorClass = 'opt-cien';
+
+            if (colorTipo === 'comp') {
+                let cantidadGrises = document.querySelectorAll('.opt-comp').length;
+                if (tarjetaDestino.classList.contains('opt-comp')) {
+                    cantidadGrises--;
+                }
+                if (cantidadGrises >= 2) {
+                    cerrarModal(idModal);
+                    document.getElementById('modal-alerta').style.display = 'flex';
+                    return; 
                 }
             }
 
-            function validarMalla() {
-                // Limpiar errores gráficos
+            tarjetaDestino.innerHTML = `${sigla} - ${nombre}`;
+            tarjetaDestino.setAttribute('data-sigla', sigla);
+            // Se añade la clase 'tipo-ciencias' para que también se limpie al hacer clic
+            tarjetaDestino.classList.remove('tipo-mn', 'tipo-pc', 'tipo-ciencias', 'opt-comp', 'opt-otro', 'opt-cien');
+            tarjetaDestino.classList.add(colorClass);
+
+            cerrarModal(idModal);
+            if(typeof window.validarMallaGlobal === 'function') { window.validarMallaGlobal(); }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const mapaPrerrequisitos = JSON.parse(document.getElementById('prerrequisitos-data').textContent);
+
+            function cumplePrerrequisitos(requisitoTexto, aprobadosSet, actualesSet) {
+                let expresion = requisitoTexto.replace(/\bo\b/gi, '||').replace(/\by\b/gi, '&&');
+                expresion = expresion.replace(/([A-Z]{3}\d{4})(\(c\))?/g, function(match, sigla, esCorrequisito) {
+                    if (esCorrequisito) {
+                        return (aprobadosSet.has(sigla) || actualesSet.has(sigla)) ? "true" : "false";
+                    } else {
+                        return aprobadosSet.has(sigla) ? "true" : "false";
+                    }
+                });
+                try { return eval(expresion); } catch (e) { return true; }
+            }
+
+            window.validarMallaGlobal = function() {
                 document.querySelectorAll('.error-prerrequisito').forEach(el => el.classList.remove('error-prerrequisito'));
                 document.querySelectorAll('.error-mensaje').forEach(el => el.remove());
 
                 const semestres = document.querySelectorAll('.semestre-col');
-                let siglasAprobadas = new Set(); // Historial de ramos en semestres pasados
+                let siglasAprobadas = new Set(); 
 
                 semestres.forEach((columna) => {
                     const ramosEnSemestre = columna.querySelectorAll('.curso');
                     let siglasActuales = new Set(); 
 
-                    // PASO 1: Recolectar todos los ramos de ESTE semestre
                     ramosEnSemestre.forEach((ramoHTML) => {
                         const sigla = ramoHTML.getAttribute('data-sigla');
                         if(sigla) siglasActuales.add(sigla);
                     });
 
-                    // PASO 2: Evaluar cada ramo sabiendo cuáles son sus compañeros de semestre
                     ramosEnSemestre.forEach((ramoHTML) => {
                         const sigla = ramoHTML.getAttribute('data-sigla');
-                        
                         if (sigla && mapaPrerrequisitos[sigla]) {
                             const reglaOriginal = mapaPrerrequisitos[sigla];
-                            
-                            // Pasamos tanto los 'aprobados' como los 'actuales'
                             if (!cumplePrerrequisitos(reglaOriginal, siglasAprobadas, siglasActuales)) {
                                 ramoHTML.classList.add('error-prerrequisito');
                                 const errorMsg = document.createElement('span');
@@ -153,71 +257,80 @@
                             }
                         }
                     });
-
-                    // Los ramos de este semestre ahora pasan al historial de aprobados para el siguiente
                     siglasActuales.forEach(s => siglasAprobadas.add(s));
                 });
             }
 
-            // Inicializar SortableJS
-            const listas = document.querySelectorAll('.lista-cursos');
-            listas.forEach(lista => {
+            document.querySelectorAll('.lista-cursos').forEach(lista => {
                 new Sortable(lista, {
-                    group: 'shared', 
-                    animation: 150,
-                    ghostClass: 'ghost',
-                    delay: 50, 
-                    delayOnTouchOnly: true,
-                    onEnd: function (evt) {
-                        validarMalla();
-                    }
+                    group: 'shared', animation: 150, ghostClass: 'ghost', delay: 50, delayOnTouchOnly: true,
+                    onEnd: function () { window.validarMallaGlobal(); }
                 });
             });
 
-            // Buscador en banco de cursos
-            const buscador = document.getElementById('buscador-banco');
-            buscador.addEventListener('input', function(e) {
-                const textoBusqueda = e.target.value.toLowerCase();
-                const cursosEnBanco = document.querySelectorAll('#banco .curso');
-
-                cursosEnBanco.forEach(curso => {
-                    const nombreCurso = curso.textContent.toLowerCase();
-                    if (nombreCurso.includes(textoBusqueda)) {
-                        curso.style.display = '';
-                    } else {
-                        curso.style.display = 'none';
-                    }
+            document.getElementById('buscador-banco').addEventListener('input', function(e) {
+                const txt = e.target.value.toLowerCase();
+                document.querySelectorAll('#banco .curso').forEach(curso => {
+                    curso.style.display = curso.textContent.toLowerCase().includes(txt) ? '' : 'none';
                 });
             });
 
-            // Retirar curso con click
             document.addEventListener('click', function(e) {
+                if (e.target.closest('.modal-overlay')) return;
+
                 const cursoClicado = e.target.closest('.curso');
                 if (cursoClicado) {
-                    const bandeja = document.getElementById('banco');
-                    if (cursoClicado.parentElement.id !== 'banco') {
-                        bandeja.appendChild(cursoClicado);
+                    const esOptativo = cursoClicado.getAttribute('data-malla-optativo') === "true";
+                    const esCiencias = cursoClicado.getAttribute('data-malla-ciencias') === "true";
+                    
+                    if (esOptativo) {
+                        abrirModal('modal-optativos', cursoClicado);
+                    } 
+                    else if (esCiencias) {
+                        abrirModal('modal-ciencias', cursoClicado);
+                    }
+                    else if (cursoClicado.parentElement.id !== 'banco') {
+                        document.getElementById('banco').appendChild(cursoClicado);
                         cursoClicado.style.display = ''; 
-                        validarMalla(); 
+                        window.validarMallaGlobal(); 
                     }
                 }
             });
 
-            // Primera validación al inicializar
-            validarMalla();
+            window.validarMallaGlobal();
         });
 
+        // REPARACIÓN DEL PDF: Ancho forzado e invisible al usuario
         function descargarPDF() {
             const elemento = document.getElementById('malla-pdf');
+            
+            // Guardar el estilo original exacto
+            const estiloOriginal = elemento.getAttribute('style') || '';
+            
+            // Forzar CSS directamente en el elemento para que no colapse al tomar la foto
+            elemento.style.cssText = 'display: flex; gap: 10px; width: 1700px !important; min-width: 1700px !important; overflow: visible !important; padding: 20px; background: #f8f9fa;';
+
             const opciones = {
                 margin:       10,
                 filename:     'Mi_Malla_Computacion.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    width: 1700,               
+                    windowWidth: 1750          
+                },
+                jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' } 
             };
 
-            html2pdf().set(opciones).from(elemento).save();
+            html2pdf().set(opciones).from(elemento).save().then(() => {
+                // Restaurar los estilos originales
+                if (estiloOriginal) {
+                    elemento.setAttribute('style', estiloOriginal);
+                } else {
+                    elemento.removeAttribute('style');
+                }
+            });
         }
     </script>
 </body>
