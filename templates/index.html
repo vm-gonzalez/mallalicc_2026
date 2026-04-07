@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Malla Ingeniería - Ciencia de la Computación</title>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -10,42 +10,38 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-descargar { background-color: #3b5998; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-descargar { background-color: #3b5998; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
         .btn-descargar:hover { background-color: #2d4373; }
         
         .layout-principal { display: flex; flex-direction: column; gap: 20px; }
 
-        /* Estilos de la malla (Sin scroll horizontal, se adapta a la pantalla) */
+        /* Estilos base de la malla (Escritorio: Apretado) */
         .malla-container { display: flex; gap: 8px; width: 100%; justify-content: space-between; }
         .semestre-col { background-color: #ffffff; border-radius: 8px; padding: 8px; flex: 1; min-width: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 500px; display: flex; flex-direction: column; }
         .semestre-title { text-align: center; font-weight: bold; margin-bottom: 12px; color: #333; font-size: 13px; }
         .lista-cursos { flex-grow: 1; }
         
-        /* Cursos ligeramente más pequeños para que quepan bien en 8 columnas */
-        .curso { padding: 8px 4px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 45px; transition: transform 0.1s; line-height: 1.15; word-wrap: break-word; }
+        .curso { padding: 8px 4px; margin-bottom: 8px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 45px; transition: transform 0.1s; line-height: 1.15; word-wrap: break-word; user-select: none; }
         .curso:hover { transform: scale(1.02); }
-        .curso:active { cursor: grabbing; }
         
-        /* Bandeja de Cursos Horizontal (Abajo) */
+        /* Bandeja de Cursos Horizontal */
         .banco-cursos { width: 100%; background-color: #e9ecef; border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; }
         .banco-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px; }
         .banco-title { font-weight: bold; color: #333; margin: 0; }
         .banco-instruccion { font-size: 13px; color: #666; margin: 0; margin-top: 5px; }
-        .buscador-input { width: 300px; max-width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .buscador-input { width: 300px; max-width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: 14px;}
         .buscador-input:focus { outline: none; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
         .banco-lista { flex-grow: 1; border: 2px dashed #adb5bd; border-radius: 5px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; min-height: 80px; align-content: flex-start; }
-        
-        /* Forzar un ancho fijo para los cursos cuando están en la bandeja inferior */
         .banco-lista .curso { width: 160px; margin-bottom: 0; font-size: 12px; }
 
         /* Colores Base */
         .tipo-pc { background-color: #a0f0e0; color: #000; }
         .tipo-fg { background-color: #2b4570; color: #fff; }
         .tipo-mj { background-color: #b8e994; color: #000; }
-        .tipo-mn { background-color: #ffeaa7; color: #000; border: 2px dashed #f6b93b; } /* Optativos Minor/Prof. */
-        .tipo-ciencias { background-color: #cce5ff; color: #000; border: 2px dashed #007bff; } /* Optativo Ciencias con Borde Azul */
+        .tipo-mn { background-color: #ffeaa7; color: #000; border: 2px dashed #f6b93b; }
+        .tipo-ciencias { background-color: #cce5ff; color: #000; border: 2px dashed #007bff; }
         
-        /* Colores Dinámicos */
+        /* Colores Dinámicos (al seleccionar) */
         .opt-comp { background-color: #d1d8e0; color: #000; border: none; }
         .opt-otro { background-color: #fab1a0; color: #000; border: none; }
         .opt-cien { background-color: #a29bfe; color: #000; border: none; }
@@ -54,33 +50,69 @@
         .error-prerrequisito { border: 2px solid #dc3545; background-color: #f8d7da !important; color: #721c24 !important; }
         .error-mensaje { font-size: 10px; color: #dc3545; font-weight: bold; display: block; margin-top: 5px; text-align: center;}
 
-        /* Estilos de los Modales */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
+        /* Modales */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 10px; box-sizing: border-box;}
+        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 500px; max-width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.3); box-sizing: border-box;}
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
-        .modal-header h3 { margin: 0; color: #333; }
-        .btn-cerrar { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-weight: bold;}
-        .lista-optativos-modal { overflow-y: auto; flex-grow: 1; padding-right: 10px;}
+        .modal-header h3 { margin: 0; color: #333; font-size: 18px;}
+        .btn-cerrar { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        .lista-optativos-modal { overflow-y: auto; flex-grow: 1; padding-right: 5px;}
         
-        .item-optativo { padding: 10px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
-        .item-optativo:hover { opacity: 0.8; }
-        .item-comp { background-color: #d1d8e0; border-left: 5px solid #a5b1c2; }
-        .item-otro { background-color: #fab1a0; border-left: 5px solid #e17055; }
-        .item-cien { background-color: #a29bfe; border-left: 5px solid #6c5ce7; }
+        .item-optativo { padding: 12px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; border: 1px solid #eee;}
+        .item-optativo:active { opacity: 0.6; }
+        .item-comp { background-color: #d1d8e0; border-left: 6px solid #a5b1c2; }
+        .item-otro { background-color: #fab1a0; border-left: 6px solid #e17055; }
+        .item-cien { background-color: #a29bfe; border-left: 6px solid #6c5ce7; }
 
-        /* Estilos de la Alerta Profesional */
+        /* Alerta Profesional */
         .alert-box { width: 350px; text-align: center; padding: 30px 20px; }
         .alert-icon { font-size: 40px; color: #dc3545; margin-bottom: 15px; }
         .alert-box h3 { margin-top: 0; color: #333; }
-        .alert-box p { color: #666; font-size: 14px; margin-bottom: 20px; }
-        .btn-alert { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; }
-        .btn-alert:hover { background-color: #0056b3; }
+        .alert-box p { color: #666; font-size: 14px; margin-bottom: 20px; line-height: 1.5;}
+        .btn-alert { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px;}
+        .btn-alert:active { background-color: #0056b3; }
+
+
+        /* ==========================================================================
+           MODO RESPONSIVE (CELULARES Y TABLETS)
+           ========================================================================== */
+        @media (max-width: 992px) {
+            body { padding: 10px; }
+            
+            .header { flex-direction: column; gap: 15px; text-align: center; margin-bottom: 15px; }
+            .btn-descargar { width: 100%; padding: 15px; font-size: 16px; }
+
+            /* Malla hace Scroll Horizontal en móviles */
+            .malla-container {
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 15px; /* Deja espacio para la barrita de scroll */
+                -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+            }
+            
+            .semestre-col {
+                min-width: 240px; /* Tamaño forzado para que no se aprieten las letras */
+                flex: 0 0 auto; 
+            }
+
+            .curso {
+                font-size: 13px; /* Letras un poco más grandes para leer en el celu */
+                padding: 12px 6px;
+                min-height: 55px; /* Botones más altos para tocarlos fácil con el dedo */
+            }
+
+            .banco-header { flex-direction: column; text-align: center; gap: 10px; }
+            .buscador-input { width: 100%; font-size: 16px; /* 16px evita que Safari haga auto-zoom */ }
+            
+            .banco-lista { justify-content: center; }
+            .banco-lista .curso { width: 100%; max-width: 280px; } /* En celulares, los ramos en espera se ven como lista */
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Malla Licenciatura Ingeniería Ciencia de la Computación</h1>
+        <h1>Mallas Ingeniería</h1>
         <button class="btn-descargar" onclick="descargarPDF()">Descargar malla (PDF)</button>
     </div>
 
@@ -107,7 +139,7 @@
             <div class="banco-header">
                 <div>
                     <h2 class="banco-title">Cursos en Espera</h2>
-                    <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo temporalmente.</p>
+                    <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo.</p>
                 </div>
                 <input type="text" id="buscador-banco" class="buscador-input" placeholder="Buscar un curso...">
             </div>
@@ -118,7 +150,7 @@
     <div id="modal-optativos" class="modal-overlay" data-html2canvas-ignore="true">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Elige un Curso Optativo / Minor</h3>
+                <h3>Optativo / Minor</h3>
                 <button class="btn-cerrar" onclick="cerrarModal('modal-optativos')">X</button>
             </div>
             <div class="lista-optativos-modal">
@@ -138,7 +170,7 @@
     <div id="modal-ciencias" class="modal-overlay" data-html2canvas-ignore="true">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Elige un Optativo de Ciencias</h3>
+                <h3>Optativo de Ciencias</h3>
                 <button class="btn-cerrar" onclick="cerrarModal('modal-ciencias')">X</button>
             </div>
             <div class="lista-optativos-modal">
@@ -205,7 +237,6 @@
 
             tarjetaDestino.innerHTML = `${sigla} - ${nombre}`;
             tarjetaDestino.setAttribute('data-sigla', sigla);
-            // Se añade la clase 'tipo-ciencias' para que también se limpie al hacer clic
             tarjetaDestino.classList.remove('tipo-mn', 'tipo-pc', 'tipo-ciencias', 'opt-comp', 'opt-otro', 'opt-cien');
             tarjetaDestino.classList.add(colorClass);
 
@@ -261,9 +292,15 @@
                 });
             }
 
+            // Inicializamos Sortable adaptado para móviles
             document.querySelectorAll('.lista-cursos').forEach(lista => {
                 new Sortable(lista, {
-                    group: 'shared', animation: 150, ghostClass: 'ghost', delay: 50, delayOnTouchOnly: true,
+                    group: 'shared', 
+                    animation: 150, 
+                    ghostClass: 'ghost', 
+                    // delay 150ms previene que se arrastren cosas por accidente al hacer scroll en el celular
+                    delay: 150, 
+                    delayOnTouchOnly: true,
                     onEnd: function () { window.validarMallaGlobal(); }
                 });
             });
@@ -275,6 +312,7 @@
                 });
             });
 
+            // Lógica de clics (funciona perfecto como toques rápidos en el celular)
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.modal-overlay')) return;
 
@@ -300,14 +338,13 @@
             window.validarMallaGlobal();
         });
 
-        // REPARACIÓN DEL PDF: Ancho forzado e invisible al usuario
+        // La descarga a PDF usa el tamaño fijo inyectado con CSS Text, lo que ignora la vista de celular 
+        // y genera siempre la foto extendida HD.
         function descargarPDF() {
             const elemento = document.getElementById('malla-pdf');
-            
-            // Guardar el estilo original exacto
             const estiloOriginal = elemento.getAttribute('style') || '';
             
-            // Forzar CSS directamente en el elemento para que no colapse al tomar la foto
+            // Forzamos la vista ancha solo para la foto del PDF
             elemento.style.cssText = 'display: flex; gap: 10px; width: 1700px !important; min-width: 1700px !important; overflow: visible !important; padding: 20px; background: #f8f9fa;';
 
             const opciones = {
@@ -324,7 +361,7 @@
             };
 
             html2pdf().set(opciones).from(elemento).save().then(() => {
-                // Restaurar los estilos originales
+                // Devolvemos el CSS a la normalidad responsiva
                 if (estiloOriginal) {
                     elemento.setAttribute('style', estiloOriginal);
                 } else {
