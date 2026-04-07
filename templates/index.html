@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malla Ingeniería - Ciencia de la Computación</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-descargar { background-color: #3b5998; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-descargar:hover { background-color: #2d4373; }
+        
+        .layout-principal { display: flex; gap: 20px; align-items: flex-start; }
+
+        /* Estilos de la bandeja de cursos en espera */
+        .banco-cursos { width: 260px; min-width: 260px; background-color: #e9ecef; border-radius: 8px; padding: 15px; height: calc(100vh - 120px); display: flex; flex-direction: column; }
+        .banco-title { font-weight: bold; text-align: center; color: #333; margin-top: 0; }
+        .banco-instruccion { font-size: 13px; color: #666; text-align: center; margin-bottom: 10px; }
+        
+        /* Buscador */
+        .buscador-input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
+        .buscador-input:focus { outline: none; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
+
+        .banco-lista { flex-grow: 1; border: 2px dashed #adb5bd; border-radius: 5px; padding: 10px; overflow-y: auto; }
+
+        /* Estilos de la malla */
+        .malla-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; flex-grow: 1; }
+        .semestre-col { background-color: #ffffff; border-radius: 8px; padding: 10px; width: 220px; min-width: 220px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 600px; display: flex; flex-direction: column;}
+        .semestre-title { text-align: center; font-weight: bold; margin-bottom: 15px; color: #333; }
+        .lista-cursos { flex-grow: 1; }
+        
+        .curso { padding: 15px 10px; margin-bottom: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; text-align: center; min-height: 50px; transition: transform 0.1s; }
+        .curso:hover { transform: scale(1.02); } /* Pequeño efecto visual al pasar el mouse */
+        .curso:active { cursor: grabbing; }
+        
+        /* Colores de los ramos */
+        .tipo-pc { background-color: #a0f0e0; color: #000; }
+        .tipo-fg { background-color: #2b4570; color: #fff; }
+        .tipo-mj { background-color: #b8e994; color: #000; }
+        .tipo-mn { background-color: #f8c291; color: #000; }
+        
+        .ghost { opacity: 0.4; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Mallas Ingeniería</h1>
+        <button class="btn-descargar" onclick="descargarPDF()">Descargar malla (PDF)</button>
+    </div>
+
+    <div class="layout-principal">
+        <div class="banco-cursos" data-html2canvas-ignore="true">
+            <h2 class="banco-title">Cursos en Espera</h2>
+            <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo temporalmente.</p>
+            
+            <input type="text" id="buscador-banco" class="buscador-input" placeholder="Buscar un curso...">
+
+            <div class="lista-cursos banco-lista" id="banco">
+                </div>
+        </div>
+
+        <div id="malla-pdf" class="malla-container">
+            {% for semestre, cursos in malla.items() %}
+                <div class="semestre-col">
+                    <div class="semestre-title">{{ semestre }}</div>
+                    <div class="lista-cursos" id="lista-{{ loop.index }}">
+                        {% for curso in cursos %}
+                            <div class="curso tipo-{{ curso.tipo }}">
+                                {{ curso.nombre }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // 1. Inicializar SortableJS
+            const listas = document.querySelectorAll('.lista-cursos');
+            listas.forEach(lista => {
+                new Sortable(lista, {
+                    group: 'shared', 
+                    animation: 150,
+                    ghostClass: 'ghost',
+                    delay: 50, // Pequeño retraso para diferenciar el clic de un arrastre rápido
+                    delayOnTouchOnly: true
+                });
+            });
+
+            // 2. Lógica del buscador en tiempo real
+            const buscador = document.getElementById('buscador-banco');
+            buscador.addEventListener('input', function(e) {
+                const textoBusqueda = e.target.value.toLowerCase();
+                const cursosEnBanco = document.querySelectorAll('#banco .curso');
+
+                cursosEnBanco.forEach(curso => {
+                    const nombreCurso = curso.textContent.toLowerCase();
+                    if (nombreCurso.includes(textoBusqueda)) {
+                        curso.style.display = '';
+                    } else {
+                        curso.style.display = 'none';
+                    }
+                });
+            });
+
+            // 3. NUEVO: Mover curso a la bandeja al hacer clic
+            document.addEventListener('click', function(e) {
+                // Buscamos si lo que se hizo clic fue un elemento con la clase 'curso'
+                const cursoClicado = e.target.closest('.curso');
+                
+                if (cursoClicado) {
+                    const bandeja = document.getElementById('banco');
+                    
+                    // Solo lo movemos si NO está ya en la bandeja de espera
+                    if (cursoClicado.parentElement.id !== 'banco') {
+                        bandeja.appendChild(cursoClicado);
+                        
+                        // Reseteamos el display por si estaba oculto por el buscador
+                        cursoClicado.style.display = ''; 
+                    }
+                }
+            });
+        });
+
+        // 4. Exportar a PDF
+        function descargarPDF() {
+            const elemento = document.getElementById('malla-pdf');
+            const opciones = {
+                margin:       10,
+                filename:     'Mi_Malla_Computacion.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opciones).from(elemento).save();
+        }
+    </script>
+</body>
+</html>
