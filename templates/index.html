@@ -15,34 +15,42 @@
         
         .layout-principal { display: flex; gap: 20px; align-items: flex-start; }
 
-        /* Estilos de la bandeja de cursos en espera */
         .banco-cursos { width: 260px; min-width: 260px; background-color: #e9ecef; border-radius: 8px; padding: 15px; height: calc(100vh - 120px); display: flex; flex-direction: column; }
         .banco-title { font-weight: bold; text-align: center; color: #333; margin-top: 0; }
         .banco-instruccion { font-size: 13px; color: #666; text-align: center; margin-bottom: 10px; }
         
-        /* Buscador */
         .buscador-input { width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-family: inherit; }
         .buscador-input:focus { outline: none; border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); }
 
         .banco-lista { flex-grow: 1; border: 2px dashed #adb5bd; border-radius: 5px; padding: 10px; overflow-y: auto; }
 
-        /* Estilos de la malla */
         .malla-container { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; flex-grow: 1; }
         .semestre-col { background-color: #ffffff; border-radius: 8px; padding: 10px; width: 220px; min-width: 220px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); min-height: 600px; display: flex; flex-direction: column;}
         .semestre-title { text-align: center; font-weight: bold; margin-bottom: 15px; color: #333; }
         .lista-cursos { flex-grow: 1; }
         
-        .curso { padding: 15px 10px; margin-bottom: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; text-align: center; min-height: 50px; transition: transform 0.1s; }
-        .curso:hover { transform: scale(1.02); } /* Pequeño efecto visual al pasar el mouse */
+        .curso { padding: 15px 10px; margin-bottom: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 50px; transition: transform 0.1s; }
+        .curso:hover { transform: scale(1.02); }
         .curso:active { cursor: grabbing; }
         
-        /* Colores de los ramos */
         .tipo-pc { background-color: #a0f0e0; color: #000; }
         .tipo-fg { background-color: #2b4570; color: #fff; }
         .tipo-mj { background-color: #b8e994; color: #000; }
         .tipo-mn { background-color: #f8c291; color: #000; }
-        
         .ghost { opacity: 0.4; }
+
+        .error-prerrequisito {
+            border: 2px solid #dc3545;
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
+        .error-mensaje {
+            font-size: 10px;
+            color: #dc3545;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -58,9 +66,7 @@
             <p class="banco-instruccion">Haz clic en un curso o arrástralo aquí para quitarlo temporalmente.</p>
             
             <input type="text" id="buscador-banco" class="buscador-input" placeholder="Buscar un curso...">
-
-            <div class="lista-cursos banco-lista" id="banco">
-                </div>
+            <div class="lista-cursos banco-lista" id="banco"></div>
         </div>
 
         <div id="malla-pdf" class="malla-container">
@@ -69,7 +75,7 @@
                     <div class="semestre-title">{{ semestre }}</div>
                     <div class="lista-cursos" id="lista-{{ loop.index }}">
                         {% for curso in cursos %}
-                            <div class="curso tipo-{{ curso.tipo }}">
+                            <div class="curso tipo-{{ curso.tipo }}" data-sigla="{{ curso.sigla }}">
                                 {{ curso.nombre }}
                             </div>
                         {% endfor %}
@@ -79,21 +85,88 @@
         </div>
     </div>
 
+    <script id="prerrequisitos-data" type="application/json">
+        {{ prerrequisitos | tojson | safe }}
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            // 1. Inicializar SortableJS
+            const mapaPrerrequisitos = JSON.parse(document.getElementById('prerrequisitos-data').textContent);
+
+            // Función evaluadora de expresiones lógicas
+            function cumplePrerrequisitos(requisitoTexto, aprobadosSet) {
+                // Traduce el texto (ej. "IIC1103 o (MAT1610 y MAT1203)") a código JS
+                let expresion = requisitoTexto
+                    .replace(/\bo\b/gi, '||')
+                    .replace(/\by\b/gi, '&&');
+
+                // Reemplaza las siglas por verificaciones booleanas (true/false)
+                // Usamos un regex general para capturar siglas como IIC2233, MAT1610, etc.
+                expresion = expresion.replace(/[A-Z]{3}\d{4}[A-Za-z]*/g, function(match) {
+                    return aprobadosSet.has(match) ? "true" : "false";
+                });
+
+                try {
+                    // Evalúa la expresión booleana final, ej: eval("true || (false && false)")
+                    return eval(expresion);
+                } catch (e) {
+                    console.error("Error evaluando regla: ", requisitoTexto);
+                    return true; // En caso de sintaxis anómala, evitamos romper la app
+                }
+            }
+
+            function validarMalla() {
+                // Limpiar errores gráficos
+                document.querySelectorAll('.error-prerrequisito').forEach(el => el.classList.remove('error-prerrequisito'));
+                document.querySelectorAll('.error-mensaje').forEach(el => el.remove());
+
+                const semestres = document.querySelectorAll('.semestre-col');
+                let siglasAprobadas = new Set(); // Historial cronológico de ramos cursados
+
+                semestres.forEach((columna) => {
+                    const ramosEnSemestre = columna.querySelectorAll('.curso');
+                    let siglasActuales = new Set(); 
+
+                    ramosEnSemestre.forEach((ramoHTML) => {
+                        const sigla = ramoHTML.getAttribute('data-sigla');
+                        if(sigla) siglasActuales.add(sigla);
+
+                        // Si existe una regla para este ramo en nuestro JSON
+                        if (sigla && mapaPrerrequisitos[sigla]) {
+                            const reglaOriginal = mapaPrerrequisitos[sigla];
+                            
+                            // Validar aplicando la lógica Booleana
+                            if (!cumplePrerrequisitos(reglaOriginal, siglasAprobadas)) {
+                                ramoHTML.classList.add('error-prerrequisito');
+                                const errorMsg = document.createElement('span');
+                                errorMsg.className = 'error-mensaje';
+                                errorMsg.innerText = `Falta: ${reglaOriginal}`;
+                                ramoHTML.appendChild(errorMsg);
+                            }
+                        }
+                    });
+
+                    // Los ramos de este semestre ahora están disponibles como prerrequisitos para el siguiente
+                    siglasActuales.forEach(s => siglasAprobadas.add(s));
+                });
+            }
+
+            // Inicializar SortableJS
             const listas = document.querySelectorAll('.lista-cursos');
             listas.forEach(lista => {
                 new Sortable(lista, {
                     group: 'shared', 
                     animation: 150,
                     ghostClass: 'ghost',
-                    delay: 50, // Pequeño retraso para diferenciar el clic de un arrastre rápido
-                    delayOnTouchOnly: true
+                    delay: 50, 
+                    delayOnTouchOnly: true,
+                    onEnd: function (evt) {
+                        validarMalla();
+                    }
                 });
             });
 
-            // 2. Lógica del buscador en tiempo real
+            // Buscador en banco de cursos
             const buscador = document.getElementById('buscador-banco');
             buscador.addEventListener('input', function(e) {
                 const textoBusqueda = e.target.value.toLowerCase();
@@ -109,26 +182,23 @@
                 });
             });
 
-            // 3. NUEVO: Mover curso a la bandeja al hacer clic
+            // Retirar curso con click
             document.addEventListener('click', function(e) {
-                // Buscamos si lo que se hizo clic fue un elemento con la clase 'curso'
                 const cursoClicado = e.target.closest('.curso');
-                
                 if (cursoClicado) {
                     const bandeja = document.getElementById('banco');
-                    
-                    // Solo lo movemos si NO está ya en la bandeja de espera
                     if (cursoClicado.parentElement.id !== 'banco') {
                         bandeja.appendChild(cursoClicado);
-                        
-                        // Reseteamos el display por si estaba oculto por el buscador
                         cursoClicado.style.display = ''; 
+                        validarMalla(); 
                     }
                 }
             });
+
+            // Primera validación al inicializar
+            validarMalla();
         });
 
-        // 4. Exportar a PDF
         function descargarPDF() {
             const elemento = document.getElementById('malla-pdf');
             const opciones = {
